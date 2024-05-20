@@ -1,0 +1,14 @@
+<ticker class="small">
+    <header>
+        <span>{{ title }} <span>({{currencies.updated_at}})</span></span>
+    </header>
+    <table>
+    {%- for rate in currencies.rates -%}
+        <tr>
+            <td class="align-right"><span class="flag-icon flag-icon-squared flag-icon-{{ rate.symbol }}"></td>
+            <td class="align-right"> {{ rate.currency }}</td>
+            <td>{{ rate.rate }}</td>
+        </tr>
+    {%- endfor -%}
+    </table>
+</ticker>
