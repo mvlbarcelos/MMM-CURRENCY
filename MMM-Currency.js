@@ -62,6 +62,7 @@ Module.register("MMM-Currency",{
 		var url = this.config.apiBase + this.getParams();
 		var Request = new XMLHttpRequest();
 		// this.processCurrencies({"success":true,"timestamp":1630147084,"base":"EUR","date":"2021-08-28","rates":{"BRL":6.139554,"USD":1.17954}})
+		Request.timeout = 15000; 
 		Request.open("GET", url, false);
 		Log.info('url: ' + url);
 		var self = this;
