@@ -1,0 +1,11 @@
+{
+  "name": "MMM-CURRENCY",
+  "version": "1.0.0",
+  "description": "A sample MagicMirror module.",
+  "main": "MMM-CURRENCY.js",
+  "author": "Marcus Barcelos <john.doe@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "moment": "^2.30.1"
+  }
+}

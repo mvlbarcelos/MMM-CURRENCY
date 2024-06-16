@@ -1,83 +1,87 @@
-Module.register("MMM-Currency",{
-	defaults: {
-		title: "Currency",
-		apiBase: "http://api.exchangeratesapi.io/latest",
-		base: "EUR",
-		symbols: [ "BRL", "USD"],
-		access_key: null,
-	},
-
-	getStyles: function() {
-		return ['MMM-Currency.css'];
-	},
-	getTemplate: function() {
-		return "MMM-Currency.njk";
-	},
-
-	start: function() {
-		Log.info('Starting module: ' + this.name);
-		var self = this;
-		this.updateCurrencies();
-		setInterval(function() {
-			self.updateCurrencies();
-			self.updateDom(); // no speed defined, so it updates instantly.
-		}, 1000 * 60 * 60 * 12);
+/*
+ *
+ * MagicMirror Module: MMM-CURRENCY
+ *
+ * Author: Marcus Barcelos
+ * License: MIT
+ *
+ * Global Module:
+ */
+Module.register("MMM-CURRENCY", {
+    // default module configuration
+    defaults: {
+        updateInterval: 60, // minutes
+        base: "EUR",
+		symbols: "BRL,USD",
+        accessKey: "802da68486cafce9ba9d36ff01c98e9b"
     },
-
-	getTemplateData: function() {
-		return {
-			title: this.config.title,
-			currencies: this.currencies,
-		};
-	},
-
-	getParams: function() {
-		var params = '?';
-		params += "base=" + this.config.base;
-		params += "&symbols=" + this.config.symbols.join();
-		params += "&access_key=" + this.config.access_key;
-		return params;
-	},
-
-	processCurrencies: function(data) {
-		this.currencies = {}
-		this.currencies.updated_at = moment.unix(data.timestamp).format('DD.MM.YYYY HH:mm:ss');
-		this.currencies.rates = [];
-		this.currencies.rates.push({
-			currency: this.config.base,
-			symbol: 'eu',
-			rate: 1,
-		});
-		for (key in data.rates) {
-			this.currencies.rates.push({
-				currency: key,
-				symbol: key.toLowerCase().slice(0,-1),
-				rate: +(Math.round(data.rates[key] + "e+2")  + "e-2"),
-			});
-		}
+    // Required version of MagicMirror
+    requiresVersion: "2.1.0",
+    // Module properties
+    currencies: {},
+    // Define translations
+    getTranslations() {
+        return {
+            en: "translations/en.json",
+            es: "translations/es.json",
+            fr: "translations/fr.json",
+        };
     },
+    // Define stylesheets
+    getStyles: function () {
+        return ["MMM-CURRENCY.css"];
+    },
+    // Define scripts
+    getScripts: function () {
+        return [];
+    },
+    // Define Nunjucks template
+    getTemplate() {
+        return "templates/MMM-CURRENCY.njk";
+    },
+    // Define data that is sent to template
+    getTemplateData() {
+        return {
+            config: this.config,
+            currencies: this.currencies
+        };
+    },
+    // Runs on initialization
+    start: function () {
+        // Get initial API data
+        this.getData();
 
-	updateCurrencies: function() {
-
-		var url = this.config.apiBase + this.getParams();
-		var Request = new XMLHttpRequest();
-		// this.processCurrencies({"success":true,"timestamp":1630147084,"base":"EUR","date":"2021-08-28","rates":{"BRL":6.139554,"USD":1.17954}})
-		Request.timeout = 15000; 
-		Request.open("GET", url, false);
-		Log.info('url: ' + url);
-		var self = this;
-		Request.onreadystatechange = function() {
-			Log.info('readyState: ' + this.readyState );
-			if (this.readyState === 4) {
-				Log.info('status: ' + this.status);
-				if (this.status === 200) {
-					Log.info('response: ' + this.response);
-					self.processCurrencies(JSON.parse(this.response));
-				} else {
-					Log.error(self.name + ": Could not load data.");
-				}
-			}
-		};
-		Request.send();
-	},
+        // Schedule update poll
+        var self = this;
+        setInterval(function () {
+            self.getData();
+        }, self.config.updateInterval * 60 * 1000); // ms
+    },
+    // Fetch data request is sent to node helper with provided parameters
+    getData: function () {
+        this.sendSocketNotification("MMM-CURRENCY-REQUEST-DATA", {
+            base: this.config.base,
+            symbols: this.config.symbols,
+            accessKey: this.config.accessKey,
+        });
+    },
+    // Fetched data response is coming back from node helper
+    socketNotificationReceived: function (notification, payload) {
+        switch (notification) {
+            case "MMM-CURRENCY-RECEIVE-DATA": {
+                this.renderUI(payload);
+            } break;
+            default: { };
+        }
+    },
+    // Render response data
+    renderUI: function (data) {
+        if (!data) {
+            console.error(this.translate('Error'))
+            return;
+        }
+        this.currencies = data;
+        // Update dom once currencies are set
+        this.updateDom(500);
+    }
 });
