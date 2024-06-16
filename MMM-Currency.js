@@ -10,7 +10,7 @@
 Module.register("MMM-CURRENCY", {
     // default module configuration
     defaults: {
-        updateInterval: 60, // minutes
+        updateInterval: 720, // minutes
         base: "EUR",
 		symbols: "BRL,USD",
         accessKey: "802da68486cafce9ba9d36ff01c98e9b"
